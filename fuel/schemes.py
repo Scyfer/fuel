@@ -229,6 +229,66 @@ class ShuffledScheme(BatchScheme):
             return imap(list, partition_all(self.batch_size, indices))
 
 
+class EqualSubsamplingScheme(ShuffledScheme):
+    """Equal subsampling batches iterator.
+
+    Subsamples per epoch the data entries from each class to match the
+    amount of samples the smallest class has.
+
+    Parameters
+    ----------
+    targets : list
+        The target classes from the dataset. For the equal subsampling
+        it is assumed that the targets are 0 to N-1 where N is the number
+        of classes in the dataset.
+    batch_size : int
+        The request iterator will return slices or list of indices in
+        batches of size `batch_size` until the end of `examples` is
+        reached.
+        Note that this means that the last batch size returned could be
+        smaller than `batch_size`. If you want to ensure all batches are
+        of equal size, then ensure len(`examples`) or `examples` is a
+        multiple of `batch_size`.
+    num_classes : int, optional
+        The number of classes in the dataset. If 'None', then it will be
+        inferred from the targets.
+
+    Notes
+    -----
+    The batch size isn't enforced, so the last batch could be smaller.
+
+    Equal subsampling requires having a list of targets and indexes in
+    memory. This can be memory-intensive for very large numbers of examples
+    (i.e. in the order of tens of millions).
+
+    """
+    def __init__(self, targets, batch_size, **kwargs):
+        num_classes = kwargs.pop('num_classes', None)
+        if num_classes is None:
+            num_classes = max(targets) + 1
+        self.class_indices = [[] for _ in range(num_classes)]
+        for idx, cls in enumerate(targets):
+            self.class_indices[cls].append(idx)
+        total_per_class = [len(cls_idxs) for cls_idxs in self.class_indices]
+        self.exp_per_class = min(total_per_class)
+        if self.exp_per_class == 0:
+            raise ValueError("One or more classes has no examples. Are the " +
+                             "targets between 0 and N-1?")
+        # Set examples with the first x example indexes per class
+        examples = [idx for cls_idxs in self.class_indices
+                    for idx in cls_idxs[:self.exp_per_class]]
+        super(EqualSubsamplingScheme, self).__init__(examples=examples,
+                                                     batch_size=batch_size,
+                                                     **kwargs)
+
+    def get_request_iterator(self):
+        self.indices = [idx for cls_idxs in self.class_indices
+                        for idx in self.rng.choice(cls_idxs,
+                                                   self.exp_per_class,
+                                                   replace=False)]
+        return super(EqualSubsamplingScheme, self).get_request_iterator()
+
+
 class SequentialExampleScheme(IndexScheme):
     """Sequential examples iterator.
 

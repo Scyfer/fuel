@@ -4,7 +4,7 @@ from numpy.testing import assert_raises
 from fuel.schemes import (ConstantScheme, SequentialExampleScheme,
                           SequentialScheme, ShuffledExampleScheme,
                           ShuffledScheme, ConcatenatedScheme,
-                          cross_validation)
+                          cross_validation, EqualSubsamplingScheme)
 
 
 def iterator_requester(scheme):
@@ -78,6 +78,17 @@ def test_shuffled_scheme_unsorted_indices():
     assert (list(get_request_iterator(indices, 3, rng=rng,
                                       sorted_indices=False)) ==
             [expected[:3], expected[3:6]])
+
+
+def test_equal_subsampling_scheme_bb():
+    get_request_iterator = iterator_requester(EqualSubsamplingScheme)
+    targets = [1, 1, 1, 0, 0, 2, 2, 2, 2]
+
+    res = list(get_request_iterator(targets, 3))
+    assert len(res) == 2
+    assert sorted([targets[r] for rb in res for r in rb]) == [0, 0, 1, 1, 2, 2]
+
+    assert_raises(ValueError, get_request_iterator, [0, 3, 1, 0], 3)
 
 
 def test_shuffled_scheme_requests_batches():
