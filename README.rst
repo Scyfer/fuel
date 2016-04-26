@@ -1,6 +1,10 @@
 .. image:: https://travis-ci.org/Scyfer/fuel.svg?branch=master
    :target: https://travis-ci.org/Scyfer/fuel
 
+.. image:: https://requires.io/github/Scyfer/fuel/requirements.svg?branch=mila_udem_master
+     :target: https://requires.io/github/Scyfer/fuel/requirements/?branch=mila_udem_master
+     :alt: Requirements Status
+     
 .. image:: https://img.shields.io/badge/license-MIT-blue.svg       
    :target: https://github.com/mila-udem/fuel/blob/master/LICENSE
 
