@@ -362,7 +362,14 @@ class Random2DRotation(SourcewiseTransformer, ExpectsAxisLabels):
 
     def _example_transform(self, example, rotation_angle):
         dt = example.dtype
-        im = Image.fromarray(example.transpose(1, 2, 0))
-        example = numpy.array(im.rotate(rotation_angle,
-                                        resample=self.resample)).astype(dt)
-        return example.transpose(2, 0, 1)
+        if dt == 'float32' or dt == 'float64':
+            example = numpy.stack([numpy.array(Image.fromarray(ch).
+                                               rotate(rotation_angle,
+                                                      resample=self.resample))
+                                   for ch in example]).astype(dt)
+            return example
+        else:
+            im = Image.fromarray(example.transpose(1, 2, 0))
+            example = numpy.array(im.rotate(rotation_angle,
+                                            resample=self.resample)).astype(dt)
+            return example.transpose(2, 0, 1)

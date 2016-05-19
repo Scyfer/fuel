@@ -435,3 +435,28 @@ class TestRandom2DRotation(ImageTestingMixin):
         out = bstream.transform_source_batch(self.source3, 'source3')
         assert_equal(out[0], expected[0])
         assert_equal(out[1], expected[1])
+
+    def test_random_2D_rotation_example_stream_float(self):
+        maximum_rotation = 0.5
+        rng = numpy.random.RandomState(123)
+        estream = Random2DRotation(self.example_stream,
+                                   maximum_rotation,
+                                   rng=rng,
+                                   which_sources=('source1',))
+        # the C x X x Y image should have equal rotation for all c in C
+        out = estream.transform_source_example(self.source1[0].
+                                               astype('float32'),
+                                               'source1')
+        expected = numpy.array([[[0,  0,  0,  2,  3],
+                                 [0,  0,  1,  7,  8],
+                                 [0,  5,  6, 12, 13],
+                                 [0, 10, 11, 17, 18]],
+                                [[0,  0,  0, 22, 23],
+                                 [0, 20, 21, 27, 28],
+                                 [0, 25, 26, 32, 33],
+                                 [0, 30, 31, 37, 38]],
+                                [[0,  0,  0, 42, 43],
+                                 [0, 40, 41, 47, 48],
+                                 [0, 45, 46, 52, 53],
+                                 [0, 50, 51, 57, 58]]], dtype='float32')
+        assert_equal(out, expected)
