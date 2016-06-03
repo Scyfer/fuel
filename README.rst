@@ -1,3 +1,6 @@
+.. image:: https://coveralls.io/repos/github/Scyfer/fuel/badge.svg?branch=master 
+   :target: https://coveralls.io/github/Scyfer/fuel?branch=master
+
 .. image:: https://travis-ci.org/Scyfer/fuel.svg?branch=master
    :target: https://travis-ci.org/Scyfer/fuel
 
