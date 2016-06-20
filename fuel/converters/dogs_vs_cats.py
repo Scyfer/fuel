@@ -49,7 +49,7 @@ def convert_dogs_vs_cats(directory, output_directory,
                                          dtype=dtype)
     hdf_shapes = h5file.create_dataset('image_features_shapes', (37500, 3),
                                        dtype='int32')
-    hdf_labels = h5file.create_dataset('targets', (37500, 1), dtype='uint8')
+    hdf_labels = h5file.create_dataset('targets', (25000, 1), dtype='uint8')
 
     # Attach shape annotations and scales
     hdf_features.dims.create_scale(hdf_shapes, 'shapes')
@@ -77,8 +77,11 @@ def convert_dogs_vs_cats(directory, output_directory,
         image_names = zip_file.namelist()[1:]  # Discard the directory name
 
         # Shuffle the examples
-        rng = numpy.random.RandomState(123522)
-        rng.shuffle(image_names)
+        if split == TRAIN:
+            rng = numpy.random.RandomState(123522)
+            rng.shuffle(image_names)
+        else:
+            image_names.sort(key=lambda fn: int(os.path.splitext(fn[6:])[0]))
 
         # Convert from JPEG to NumPy arrays
         with progress_bar(filename, split_size) as bar:
@@ -90,7 +93,8 @@ def convert_dogs_vs_cats(directory, output_directory,
                 hdf_shapes[i] = image.shape
 
                 # Cats are 0, Dogs are 1
-                hdf_labels[i] = 0 if 'cat' in image_name else 1
+                if split == TRAIN:
+                    hdf_labels[i] = 0 if 'cat' in image_name else 1
 
                 # Update progress
                 i += 1
@@ -99,9 +103,8 @@ def convert_dogs_vs_cats(directory, output_directory,
     # Add the labels
     split_dict = {}
     sources = ['image_features', 'targets']
-    for name, slice_ in zip(['train', 'test'],
-                            [(0, 25000), (25000, 37500)]):
-        split_dict[name] = dict(zip(sources, [slice_] * len(sources)))
+    split_dict['train'] = dict(zip(sources, [(0, 25000)] * 2))
+    split_dict['test'] = {sources[0]: (25000, 37500)}
     h5file.attrs['split'] = H5PYDataset.create_split_array(split_dict)
 
     h5file.flush()
