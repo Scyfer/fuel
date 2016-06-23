@@ -26,7 +26,7 @@ install:
       if [[ $TESTS == 'fuel' ]]; then
         conda install -q --yes python=$TRAVIS_PYTHON_VERSION --file req-travis-conda.txt
         pip install -r req-travis-pip.txt
-        pip install . -r requirements.txt # Installs the fuel-download command needed by .travis-data.sh
+        travis_wait pip install . -r requirements.txt # Installs the fuel-download command needed by .travis-data.sh
         python setup.py build_ext --inplace
       fi
 script:
