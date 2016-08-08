@@ -64,7 +64,13 @@ class ImagesFromBytes(SourcewiseTransformer):
         else:
             bytes_type = str
         if not isinstance(example, bytes_type):
-            raise TypeError("expected {} object".format(bytes_type.__name__))
+            if isinstance(example, numpy.ndarray) and example.dtype == 'uint8':
+                pass
+            else:
+                raise TypeError(
+                    "expected {} object or numpy array of dtype uint8 "
+                    "(can be interpreted as byte array)."
+                    .format(bytes_type.__name__))
         pil_image = Image.open(BytesIO(example))
         if self.color_mode is not None:
             pil_image = pil_image.convert(self.color_mode)
@@ -80,6 +86,8 @@ class ImagesFromBytes(SourcewiseTransformer):
         return image
 
     def transform_source_batch(self, batch, source_name):
+        for b in batch:
+            print b.shape
         return [self.transform_source_example(im, source_name) for im in batch]
 
     def _make_axis_labels(self, data_stream, which_sources, produces_examples):
