@@ -86,8 +86,6 @@ class ImagesFromBytes(SourcewiseTransformer):
         return image
 
     def transform_source_batch(self, batch, source_name):
-        for b in batch:
-            print b.shape
         return [self.transform_source_example(im, source_name) for im in batch]
 
     def _make_axis_labels(self, data_stream, which_sources, produces_examples):
