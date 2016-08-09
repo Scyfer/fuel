@@ -48,7 +48,8 @@ class ImagesFromBytes(SourcewiseTransformer):
     list of loaded images is returned.
 
     """
-    def __init__(self, data_stream, color_mode='RGB', **kwargs):
+    def __init__(self, data_stream, color_mode='RGB', channel_pos='front',
+                 **kwargs):
         kwargs.setdefault('produces_examples', data_stream.produces_examples)
         # Acrobatics currently required to correctly set axis labels.
         which_sources = kwargs.get('which_sources', data_stream.sources)
@@ -57,6 +58,10 @@ class ImagesFromBytes(SourcewiseTransformer):
         kwargs.setdefault('axis_labels', axis_labels)
         super(ImagesFromBytes, self).__init__(data_stream, **kwargs)
         self.color_mode = color_mode
+        if channel_pos not in {'front', 'back'}:
+            raise ValueError('Channel position can only take value "front" '
+                             'or "back"')
+        self.channel_pos = channel_pos
 
     def transform_source_example(self, example, source_name):
         if PY3:
@@ -75,12 +80,14 @@ class ImagesFromBytes(SourcewiseTransformer):
         if self.color_mode is not None:
             pil_image = pil_image.convert(self.color_mode)
         image = numpy.array(pil_image)
-        if image.ndim == 3:
+        if image.ndim == 3 and self.channel_pos == 'front':
             # Transpose to `(channels, height, width)` layout.
             return image.transpose(2, 0, 1)
-        elif image.ndim == 2:
+        elif image.ndim == 2 and self.channel_pos == 'front':
             # Add a channels axis of length 1.
             image = image[numpy.newaxis]
+        elif image.ndim == 2 and self.channel_pos == 'back':
+            image = image[:, numpy.newaxis]
         else:
             raise ValueError('unexpected number of axes')
         return image
