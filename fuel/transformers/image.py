@@ -31,6 +31,10 @@ class ImagesFromBytes(SourcewiseTransformer):
     color_mode : str, optional
         Mode to pass to PIL for color space conversion. Default is RGB.
         If `None`, no coercion is performed.
+    channel_pos : str, default='front'
+        Define position of the channel dimension. Can be either 'front'
+        for image like (channels, height, width) or 'back' for image like
+        (height, width, channels).
 
     Notes
     -----
@@ -82,7 +86,10 @@ class ImagesFromBytes(SourcewiseTransformer):
         image = numpy.array(pil_image)
         if image.ndim == 3 and self.channel_pos == 'front':
             # Transpose to `(channels, height, width)` layout.
-            return image.transpose(2, 0, 1)
+            image = image.transpose(2, 0, 1)
+        if image.ndim == 3 and self.channel_pos == 'back':
+            # Already in shape `(height, width, channels)`
+            pass
         elif image.ndim == 2 and self.channel_pos == 'front':
             # Add a channels axis of length 1.
             image = image[numpy.newaxis]
