@@ -1045,6 +1045,46 @@ class OneHotEncodingND(OneHotEncoding):
                              .format(source_batch.dtype))
 
 
+class MultiHotEncoding(SourcewiseTransformer):
+    """Converts integer target list variables to multi hot encoding.
+
+    It assumes that the targets are integer numbers from 0,... , N-1.
+    Since it works on the fly the number of classes N needs to be
+    specified.
+
+    Parameters
+    ----------
+    data_stream : :class:`DataStream` or :class:`Transformer`.
+        The data stream.
+    num_classes : int
+        The number of classes.
+    scale : bool, default=False.
+        Scale targets for softmax. Say your target for an example was
+        originally [1., 0., 0., 1.], scaled targets becomes [.5, 0., 0., .5].
+
+    """
+    def __init__(self, data_stream, num_classes, scale=False, **kwargs):
+        if data_stream.axis_labels:
+            kwargs.setdefault('axis_labels', data_stream.axis_labels.copy())
+        super(MultiHotEncoding, self).__init__(
+            data_stream, data_stream.produces_examples, **kwargs)
+        self.num_classes = num_classes
+        self.scale = scale
+
+    def transform_source_example(self, source_example, source_name):
+        if any(source_example >= self.num_classes):
+            raise ValueError("source_example must be lower than num_classes")
+        output = numpy.zeros((self.num_classes))
+        value = 1. / len(source_example) if self.scale else 1
+        for t in source_example:
+            output[t] = value
+        return output
+
+    def transform_source_batch(self, source_batch, source_name):
+        return numpy.array([self.transform_source_example(example, source_name)
+                            for example in source_batch])
+
+
 class Duplicate(Transformer):
     """
     Duplicate the sources directed by which_sources, insert them after their
