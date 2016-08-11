@@ -1058,24 +1058,26 @@ class MultiHotEncoding(SourcewiseTransformer):
         The data stream.
     num_classes : int
         The number of classes.
-    which_sources : tuple of str
-        Which sources to apply the one hot encoding.
+    scale : bool, default=False.
+        Scale targets for softmax. Say your target for an example was
+        originally [1., 0., 0., 1.], scaled targets becomes [.5, 0., 0., .5].
 
     """
-    def __init__(self, data_stream, num_classes, which_sources, **kwargs):
+    def __init__(self, data_stream, num_classes, scale=False, **kwargs):
         if data_stream.axis_labels:
             kwargs.setdefault('axis_labels', data_stream.axis_labels.copy())
         super(MultiHotEncoding, self).__init__(
-            data_stream, data_stream.produces_examples, which_sources,
-            **kwargs)
+            data_stream, data_stream.produces_examples, **kwargs)
         self.num_classes = num_classes
+        self.scale = scale
 
     def transform_source_example(self, source_example, source_name):
         if any(source_example >= self.num_classes):
             raise ValueError("source_example must be lower than num_classes")
-        output = numpy.zeros((1, self.num_classes))
+        output = numpy.zeros((self.num_classes))
+        value = 1. / len(source_example) if self.scale else 1
         for t in source_example:
-            output[0, t] = 1
+            output[t] = value
         return output
 
     def transform_source_batch(self, source_batch, source_name):
