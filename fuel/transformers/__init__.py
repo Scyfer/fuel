@@ -946,7 +946,8 @@ class OneHotEncoding(SourcewiseTransformer):
 
     It assumes that the targets are integer numbers from 0,... , N-1.
     Since it works on the fly the number of classes N needs to be
-    specified.
+    specified. The targets are assumed to be in source_name 'targets',
+    but can be specified otherwise.
 
     Parameters
     ----------
@@ -954,21 +955,18 @@ class OneHotEncoding(SourcewiseTransformer):
         The data stream.
     num_classes : int
         The number of classes.
-    which_sources : tuple of str
-        Which sources to apply the one hot encoding.
 
     """
-    def __init__(self, data_stream, num_classes, which_sources, **kwargs):
-        if data_stream.axis_labels:
-            kwargs.setdefault('axis_labels', data_stream.axis_labels.copy())
+    def __init__(self, data_stream, num_classes, **kwargs):
         super(OneHotEncoding, self).__init__(
-            data_stream, data_stream.produces_examples, which_sources,
-            **kwargs)
+            data_stream, data_stream.produces_examples, **kwargs)
         self.num_classes = num_classes
 
     def transform_source_example(self, source_example, source_name):
         if source_example >= self.num_classes:
-            raise ValueError("source_example must be lower than num_classes")
+            raise ValueError("source_example ({}) must be lower than "
+                             "num_classes ({})".format(source_example,
+                                                       self.num_classes))
         output = numpy.zeros((1, self.num_classes))
         output[0, source_example] = 1
         return output
@@ -976,11 +974,14 @@ class OneHotEncoding(SourcewiseTransformer):
     def transform_source_batch(self, source_batch, source_name):
         if numpy.max(source_batch) >= self.num_classes:
             raise ValueError("all entries in source_batch must be lower than "
-                             "num_classes")
+                             "num_classes ({})".format(self.num_classes))
         output = numpy.zeros((source_batch.shape[0], self.num_classes),
                              dtype=source_batch.dtype)
+        # if batch is of shape N x 1
+        if source_batch.ndim == 2 and source_batch.shape[1] == 1:
+            source_batch = source_batch[:, 0]
         for i in range(self.num_classes):
-            output[source_batch[:, 0] == i, i] = 1
+            output[source_batch == i, i] = 1
         return output
 
 
