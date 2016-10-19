@@ -17,19 +17,19 @@ class ImagesFromFile(Dataset):
         expected in form of a regular excursion. For example
         '/this/path/*jpeg' will use all jpeg images in the folder '/this/path'.
         The images will be given in source ``images`` and it will also
-        give the source ``fiel_paths`` which contains the exact path of
+        give the source ``file_paths`` which contains the exact path of
         the loaded image.
-    load_in_memory: bool, default=True
+    load_in_memory : bool, default=True
         If true, all images will be load in memory on construction.
         Otherwise the images are loaded as they are requested. When
         iterating multiple times over the dataset it is advicable to set it
         to true. If the dataset is very big and only a subset is used,
         it is advisable to put this to false.
-    start: int, default=None
+    start : int, default=None
         If only a subset is required, the start of the block can be defined
         here. Note, the order is depended on the output of
         ``glob.glob(pattern)``.
-    stop: int, default=None
+    stop : int, default=None
         If only a subset is required, the end of the block can be defined
         here. Note, the order is depended on the output of
         ``glob.glob(pattern)``.
@@ -73,6 +73,7 @@ class ImagesFromFile(Dataset):
 
 
 def _load_images(file_paths):
+    """ Loads all given images and returns them as a list of numpy arrays. """
     images = []
     for fp in file_paths:
         img = Image.open(fp)
@@ -81,6 +82,7 @@ def _load_images(file_paths):
 
 
 def _list_fancy_indexing(iterable, request):
+    """ Enables fancy indexing (like in numpy) for lists. """
     if isinstance(request, (slice, int)):
         return iterable[request]
     else:
