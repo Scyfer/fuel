@@ -81,7 +81,7 @@ def _load_images(file_paths):
 
 
 def _list_fancy_indexing(iterable, request):
-    if isinstance(request, slice):
+    if isinstance(request, (slice, int)):
         return iterable[request]
     else:
         return [iterable[r] for r in request]
