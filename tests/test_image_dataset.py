@@ -1,5 +1,5 @@
-import os
 import shutil
+import tempfile
 from PIL import Image
 
 from fuel.datasets import ImagesFromFile
@@ -14,12 +14,11 @@ def create_dummy_images(path, num_images):
 
 
 class TestDataset(object):
-    def __init__(self):
-        self.ds_path = 'dummy_dataset'
-        os.mkdir(self.ds_path)
+    def setUp(self):
+        self.ds_path = tempfile.mkdtemp()
         create_dummy_images(self.ds_path, 5)
 
-    def __del__(self):
+    def tearDown(self):
         shutil.rmtree(self.ds_path)
 
     def test_num_examples(self):
@@ -47,9 +46,3 @@ class TestDataset(object):
         for imgs, _ in stream.get_epoch_iterator():
             assert len(imgs) == 5
             assert imgs[0].shape == (512, 512, 3)
-
-if __name__ == "__main__":
-    test = TestDataset()
-    test.test_num_examples()
-    test.test_get_data_dynamic()
-    test.test_get_data_inmemory()
