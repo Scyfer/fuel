@@ -36,8 +36,9 @@ class TestDataset(object):
             ds.num_examples, batch_size=10))
         for imgs, file_paths in stream.get_epoch_iterator():
             assert len(imgs) == 5
-            assert imgs[0].shape == (512, 512, 3)
-            assert self.ds_path in file_paths[0]
+            assert all([img.shape == (512, 512, 3) for img in imgs])
+            assert all([self.ds_path in fp for fp in file_paths])
+            assert len(set(file_paths)) == 5
 
     def test_get_data_inmemory(self):
         ds = ImagesFromFile('{}/*.jpeg'.format(self.ds_path),
@@ -46,5 +47,6 @@ class TestDataset(object):
             ds.num_examples, batch_size=10))
         for imgs, file_paths in stream.get_epoch_iterator():
             assert len(imgs) == 5
-            assert imgs[0].shape == (512, 512, 3)
-            assert self.ds_path in file_paths[0]
+            assert all([img.shape == (512, 512, 3) for img in imgs])
+            assert all([self.ds_path in fp for fp in file_paths])
+            assert len(set(file_paths)) == 5
