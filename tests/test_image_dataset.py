@@ -34,15 +34,17 @@ class TestDataset(object):
                             load_in_memory=False)
         stream = DataStream(ds, iteration_scheme=ShuffledScheme(
             ds.num_examples, batch_size=10))
-        for imgs, _ in stream.get_epoch_iterator():
+        for imgs, file_paths in stream.get_epoch_iterator():
             assert len(imgs) == 5
             assert imgs[0].shape == (512, 512, 3)
+            assert self.ds_path in file_paths[0]
 
     def test_get_data_inmemory(self):
         ds = ImagesFromFile('{}/*.jpeg'.format(self.ds_path),
                             load_in_memory=True)
         stream = DataStream(ds, iteration_scheme=ShuffledScheme(
             ds.num_examples, batch_size=10))
-        for imgs, _ in stream.get_epoch_iterator():
+        for imgs, file_paths in stream.get_epoch_iterator():
             assert len(imgs) == 5
             assert imgs[0].shape == (512, 512, 3)
+            assert self.ds_path in file_paths[0]
