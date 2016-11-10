@@ -3,6 +3,7 @@ from os import path
 import sys
 from io import open
 from setuptools import find_packages, setup
+from Cython.Build import cythonize
 from distutils.extension import Extension
 
 HERE = path.abspath(path.dirname(__file__))
@@ -45,8 +46,9 @@ setup(
     ],
     keywords='dataset data iteration pipeline processing',
     packages=find_packages(exclude=['tests']),
-    install_requires=['numpy', 'six', 'picklable_itertools', 'pyyaml', 'h5py', 'tables',
-                      'progressbar2', 'pyzmq', 'scipy', 'pillow', 'requests'],
+    install_requires=['numpy', 'six', 'picklable_itertools', 'pyyaml', 'h5py', 'cython', 
+                      'tables', 'progressbar2', 'pyzmq', 'scipy', 'pillow', 
+                      'requests'],
     extras_require={
         'test': ['mock', 'nose', 'nose2'],
         'docs': ['sphinx', 'sphinx-rtd-theme']
@@ -56,7 +58,7 @@ setup(
                             'fuel-download = fuel.bin.fuel_download:main',
                             'fuel-info = fuel.bin.fuel_info:main']
     },
-    ext_modules=[Extension("fuel.transformers._image",
-                           ["fuel/transformers/_image.c"],
-                           extra_compile_args=extra_compile_args)]
+    ext_modules=cythonize(Extension("fuel.transformers._image",
+                                    ["fuel/transformers/_image.pyx"],
+                                    extra_compile_args=extra_compile_args))
 )
